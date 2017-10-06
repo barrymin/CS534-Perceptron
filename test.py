@@ -18,7 +18,7 @@ p.TrainEpoch(binarized_features, labels)
 c = p.Test(binarized_features)
 err_count = 0
 for i, l in enumerate(c):
-    if l != labels[i]:
+    if l * labels[i] <= 0.:
         err_count += 1
         print ('Misclassified: {} \n\tas {}'.format(examples[i], l))
 print('\n{} mistakes out of {} examples\n'.format(err_count, len(examples)))
