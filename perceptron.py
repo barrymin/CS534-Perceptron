@@ -53,6 +53,26 @@ class Perceptron:
                 self.b += y
         return correct
 
+    """
+    Perceptron.TrainExample(self, example)
+    trains single example
+    parameters:
+        example    numpy array          a feature vector to train on
+    returns:
+        updated     Bool                whether weights/bias updated
+        weights     numpy array         weights for this model
+        bias        float               bias for this model
+    """
+    def TrainExample(self, x, y):
+        # test the model
+        if self.Classify(x) * y <= 0:
+            # mis-classified
+            self.w += y * x
+            self.b += y
+            return True, self.w, self.b
+        else:
+            return False, self.w, self.b
+
     def Classify(self, example):
         return np.dot(self.w, example) + self.b
 

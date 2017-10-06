@@ -9,7 +9,7 @@ def read_examples(path):
     data = []
     with open(path, 'r') as fp:
         for i, line in enumerate(fp.readlines()):
-            fields = line.split((', '))
+            fields = line.strip().split((', '))
             if len(fields) < 9:
                 print('warning: data file line {} has unexpected format'.format(i))
                 continue
