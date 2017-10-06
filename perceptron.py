@@ -16,26 +16,31 @@ class Perceptron:
     Perceptron.Train(examples)
     trains the perceptron on examples provided
     parameters:
-    examples    [numpy arrays]      a list of feature vectors to train on
-    labels      [float]             a list of ground-truth labels, same length
+        examples    [numpy arrays]      a list of feature vectors to train on
+        labels      [float]             a list of ground-truth labels, same length
+    returns:
+        weights     numpy array         weights for this model
+        bias        float               bias for this model
     """
     def TrainEpoch(self, examples, labels):
         self.initialize()
-        count = 0
         while True:
-            count += 1
-            print('iter {}'.format(count))
+            # shuffle the data
             idxs = range(len(examples))
             random.shuffle(idxs)
             shuffled = [(examples[idx], labels[idx]) for idx in idxs]
+            # TrainIter returns True if achieves 100 percent on data
             if self.TrainIter(shuffled):
-                # 100 percent on training data: done!
                 return self.w, self.b
+
     """
     Perceptron.TrainIter(self, examples)
     trains all examples once
     parameters:
-    examples    [numpy arrays]      a list of feature vectors to train on
+        examples    [numpy arrays]      a list of feature vectors to train on
+    returns:
+        correct     Bool                True if all examples correctly classified
+                                        False otherwise
     """
     def TrainIter(self, examples):
         correct = True

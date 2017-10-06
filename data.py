@@ -33,9 +33,6 @@ def embed_data(data):
     val2num, num2val, accums = [{} for f in fields], [{} for f in fields], [0 for f in fields]
     for d in data:
         for j in range(len(d) - 1):
-            # for j, x_j in enumerate(d):
-            #     if j == len(d) - 1:
-            #         continue
             emb = val2num[j]
             rev_emb = num2val[j]
             val = d[j]
@@ -43,7 +40,6 @@ def embed_data(data):
             if val not in emb:
                 emb[val] = num
                 rev_emb[num] = val
-                # num = emb[val]
                 accums[j] += 1
 
     return val2num, num2val
