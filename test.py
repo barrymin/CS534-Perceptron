@@ -90,7 +90,7 @@ print >> sys.stderr, 'Best error rate on dev set:\t{:.6}\n'.format(errs / len(de
 
 # label the test set
 print '\nClassifier labels for test set:\n'
-for i in range(len(dev_data)):
-    classified = p.Classify(dev_binarized_features[i])
+for i in range(len(test_data)):
+    classified = p.Classify(test_binarized_features[i])
     inc = '>=50k' if classified > 0 else '<50k'
-    print '{}\t{}'.format(dev_data[i], inc)
+    print '{}\t{}'.format(test_data[i], inc)
