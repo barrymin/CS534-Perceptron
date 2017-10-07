@@ -82,6 +82,9 @@ class Perceptron:
             self.b = bias
         return [self.Classify(x) for x in examples]
 
+    def GetWeightsBias(self):
+        return self.w, self.b
+
     def SetWeightBias(self, weights, bias):
         self.w = weights
         self.b = bias
