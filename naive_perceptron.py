@@ -6,14 +6,19 @@ class Naive_perceptron(Perceptron):
         Perceptron.__init__(self,dimension)
         self.wavg = np.zeros(dimension)
         self.bavg = 0
+        self.c = 0
+
+    def initialize(self):
+        Perceptron.initialize(self)
+        self.wavg = np.zeros(self.dimension)
+        self.bavg = 0
+        self.c = 0
         
     def TrainEpoch(self,examples,labels):
-        self.wavg = np.zeros(self.dimension)
-        self.w = np.zeros(self.dimension)
-        self.bavg = 0
+        self.initialize()
         count = 0.0
         while True:
-            count+=1
+            count += 1
             idxs = range(len(examples))
             random.shuffle (idxs)
             shuffled = [(examples[idx], labels[idx]) for idx in idxs]
@@ -23,4 +28,30 @@ class Naive_perceptron(Perceptron):
             if stop:
                 return self.wavg/count, self.b/count
                 
-        
+    def TrainExample(self, x, y):
+        self.c += 1
+        if y * Perceptron.Classify(self, x) <= 0:
+            self.w += y * x
+            self.b += y
+            self.wavg += y * x * self.c
+            self.bavg += y * self.c
+            w, b = self.GetWeightsBias()
+            return True, w, b
+        else:
+            self.wavg += y * x * self.c
+            self.bavg += y * self.c
+            w, b = self.GetWeightsBias()
+            return False, w, b
+
+    def Test(self, examples, weights=None, bias=None):
+        if weights is None or bias is None:
+            w, b = self.GetWeightsBias()
+        else:
+            w, b = weights, bias
+        return [np.dot(w, xi) + b for xi in examples]
+
+    def GetWeightsBias(self):
+        return  self.wavg / self.c, self.bavg / self.c
+
+
+
