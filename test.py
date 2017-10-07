@@ -4,6 +4,7 @@ from __future__ import division
 from data import *
 from perceptron import *
 from naive_perceptron import *
+from smart_perceptron import *
 import sys
 
 MAX_EPOCHS = 5
@@ -25,6 +26,7 @@ test_examples = [d[:-1] for d in test_data]
 test_binarized_features = binarize(test_examples, emb)
 
 p = Naive_perceptron(dimension=len(train_binarized_features[0]))
+# p = Smart_perceptron(dimension=len(train_binarized_features[0]))
 # p = Perceptron(dimension=len(train_binarized_features[0]))
 
 
