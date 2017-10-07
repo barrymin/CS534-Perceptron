@@ -76,6 +76,12 @@ class Perceptron:
     def Classify(self, example):
         return np.dot(self.w, example) + self.b
 
-    def Test(self, examples):
+    def Test(self, examples, weights=None, bias=None):
+        if weights is not None and bias is not None:
+            self.w = weights
+            self.b = bias
         return [self.Classify(x) for x in examples]
 
+    def SetWeightBias(self, weights, bias):
+        self.w = weights
+        self.b = bias

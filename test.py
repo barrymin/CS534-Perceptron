@@ -3,6 +3,7 @@
 from __future__ import division
 from data import *
 from perceptron import *
+from naive_perceptron import *
 import sys
 
 MAX_EPOCHS = 5
@@ -23,11 +24,12 @@ test_data = read_examples('income-data/income.test.txt')
 test_examples = [d[:-1] for d in test_data]
 test_binarized_features = binarize(test_examples, emb)
 
-p = Perceptron(dimension=len(train_binarized_features[0]))
+p = Naive_perceptron(dimension=len(train_binarized_features[0]))
+# p = Perceptron(dimension=len(train_binarized_features[0]))
 
 
-def test(inputs, xs, ys):
-    classified = p.Test(xs)
+def test(inputs, xs, ys, weights, bias):
+    classified = p.Test(xs, weights, bias)
     err_count = 0
     for i, l in enumerate(classified):
         if l * ys[i] <= 0.:
@@ -58,7 +60,7 @@ while epochs < MAX_EPOCHS:
         updated, w, b = p.TrainExample(x, train_labels[i])
         if count % 1000 == 0:
             # every 1000 examples, test on dev set
-            misclassified = test(dev_examples, dev_binarized_features, dev_labels)
+            misclassified = test(dev_examples, dev_binarized_features, dev_labels, None, None)
             print >> sys.stderr, 'Epoch {:.3}\t{:.4}'.format(
                 epochs + count / len(train_labels), misclassified / len(dev_labels)
             )
@@ -78,9 +80,11 @@ while epochs < MAX_EPOCHS:
 
 # test
 print >> sys.stderr, '\nTesting on dev set:'
-p.w = np.array(best_w)
-p.b = best_b
-errs = test(dev_examples, dev_binarized_features, dev_labels)
+
+# p.w = np.array(best_w)
+# p.b = best_b
+
+errs = test(dev_examples, dev_binarized_features, dev_labels, np.array(best_w), best_b)
 print >> sys.stderr, '{} mistakes out of {} examples. '.format(errs, len(dev_labels))
 print >> sys.stderr, 'Best error rate on dev set:\t{:.6}\n'.format(errs / len(dev_labels))
 
