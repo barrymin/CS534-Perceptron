@@ -1,6 +1,6 @@
 #!/bin/python
 
-from __future__ import print_function
+# from __future__ import print_function
 from collections import defaultdict
 import numpy as np
 
@@ -11,7 +11,7 @@ def read_examples(path):
         for i, line in enumerate(fp.readlines()):
             fields = line.strip().split((', '))
             if len(fields) < 9:
-                print('warning: data file line {} has unexpected format'.format(i))
+                print 'warning: data file line {} has unexpected format'.format(i)
                 continue
             if len(fields) == 9:
                 age, emp, edu, mar, job, eth, sex, hrs, nat = fields
