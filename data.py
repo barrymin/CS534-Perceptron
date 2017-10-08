@@ -32,7 +32,7 @@ def embed_data(data):
     fields = [f for f in data[0]]
     val2num, num2val, accums = [{} for f in fields], [{} for f in fields], [0 for f in fields]
     for d in data:
-        for j in range(len(d) - 1):
+        for j in range(len(d)):
             emb = val2num[j]
             rev_emb = num2val[j]
             val = d[j]
