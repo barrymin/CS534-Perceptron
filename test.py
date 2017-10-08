@@ -25,9 +25,9 @@ test_data = read_examples('income-data/income.test.txt')
 test_examples = [d[:-1] for d in test_data]
 test_binarized_features = binarize(test_examples, emb)
 
-p = Naive_perceptron(dimension=len(train_binarized_features[0]))
+# p = Naive_perceptron(dimension=len(train_binarized_features[0]))
 # p = Smart_perceptron(dimension=len(train_binarized_features[0]))
-# p = Perceptron(dimension=len(train_binarized_features[0]))
+p = Naive_perceptron(dimension=len(train_binarized_features[0]))
 
 
 def test(inputs, xs, ys, weights, bias):
