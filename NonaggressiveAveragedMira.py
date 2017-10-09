@@ -34,7 +34,6 @@ class NonaggressiveAveragedMira(Perceptron):
         if y * Perceptron.Classify(self, x) <= 0:
             deno =abs(np.dot(x, x))
             learning_rate = (y - np.dot(self.w,x))/(deno**2)
-
             self.w = self.w + (learning_rate * x)
             self.b = self.b + learning_rate
             self.wavg += learning_rate * x * self.c
