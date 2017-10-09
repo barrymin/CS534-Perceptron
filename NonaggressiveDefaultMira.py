@@ -37,8 +37,6 @@ class NonaggressiveDefaultMira(Perceptron):
 
             self.w = self.w + (learning_rate * x)
             self.b = self.b + learning_rate
-            #self.wavg += learning_rate * x * self.c
-            #self.bavg += learning_rate * self.c
             w, b = self.GetWeightsBias()
             return True, w, b
         else:
@@ -53,5 +51,4 @@ class NonaggressiveDefaultMira(Perceptron):
         return [np.dot(w, xi) + b for xi in examples]
 
     def GetWeightsBias(self):
-        #return self.w - self.wavg / self.c, self.b - self.bavg / self.c
         return self.w, self.b
