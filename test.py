@@ -2,10 +2,12 @@
 
 from __future__ import division
 from data import *
+import sys
 from perceptron import *
 from naive_perceptron import *
 from smart_perceptron import *
-import sys
+from NonaggressiveDefaultMira import *
+from NonaggressiveAveragedMira import *
 
 MAX_EPOCHS = 5
 
@@ -25,9 +27,11 @@ test_data = read_examples('income-data/income.test.txt')
 test_examples = [d[:-1] for d in test_data]
 test_binarized_features = binarize(test_examples, emb)
 
-# p = Naive_perceptron(dimension=len(train_binarized_features[0]))
+# p = Perceptron(dimension=len(train_binarized_features[0]))
 # p = Smart_perceptron(dimension=len(train_binarized_features[0]))
-p = Naive_perceptron(dimension=len(train_binarized_features[0]))
+# p = Naive_perceptron(dimension=len(train_binarized_features[0]))
+# p = NonaggressiveDefaultMira(dimension=len(train_binarized_features[0]))
+p = NonaggressiveAveragedMira(dimension=len(train_binarized_features[0]))
 
 
 def test(inputs, xs, ys, weights, bias):
@@ -44,7 +48,7 @@ def test(inputs, xs, ys, weights, bias):
 count = 0
 epochs = 1
 min_err = len(dev_labels)
-best_w, best_b = None, None
+best_w, best_b, best_epoch = None, None, None
 while epochs < MAX_EPOCHS:
     count = 0
     epochs += 1
@@ -69,7 +73,7 @@ while epochs < MAX_EPOCHS:
             if misclassified < min_err:
                 # best result so far => update best model
                 min_err = misclassified
-                # best_w, best_b = w, b
+                best_epoch = epochs + count / len(train_labels)
                 best_w = w.tolist()
                 best_b = b
 
@@ -88,7 +92,8 @@ print >> sys.stderr, '\nTesting on dev set:'
 
 errs = test(dev_examples, dev_binarized_features, dev_labels, np.array(best_w), best_b)
 print >> sys.stderr, '{} mistakes out of {} examples. '.format(errs, len(dev_labels))
-print >> sys.stderr, 'Best error rate on dev set:\t{:.6}\n'.format(errs / len(dev_labels))
+print >> sys.stderr, 'Best error rate on dev set:\t{:.6}'.format(errs / len(dev_labels))
+print >> sys.stderr, 'Achieved at epoch {}\n'.format(best_epoch)
 
 # label the test set
 print '\nClassifier labels for test set:\n'
@@ -96,3 +101,14 @@ for i in range(len(test_data)):
     classified = p.Classify(test_binarized_features[i])
     inc = '>=50k' if classified > 0 else '<50k'
     print '{}\t{}'.format(test_data[i], inc)
+
+print '\n\nweights:'
+weights, bias = p.GetWeightsBias()
+feature_names = []
+for r in rev_emb:
+    feature_names += [kv[1] for kv in sorted(r.items())]
+
+ordered_idxs = [i for i in sorted(range(len(weights)), key=lambda x: weights[x])]
+
+for i in ordered_idxs:
+    print '{}: {}'.format(feature_names[i], weights[i])

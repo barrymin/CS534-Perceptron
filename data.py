@@ -10,6 +10,8 @@ def read_examples(path):
     with open(path, 'r') as fp:
         for i, line in enumerate(fp.readlines()):
             fields = line.strip().split((','))
+            while '' in fields:
+                fields.remove('')
             if len(fields) < 9:
                 print 'warning: data file line {} has unexpected format'.format(i)
                 continue
@@ -26,7 +28,7 @@ def read_examples(path):
 
 
 """
-stupid function to count how many values each field has
+produce the feature mapping
 """
 def embed_data(data):
     fields = [f for f in data[0]]
@@ -45,8 +47,8 @@ def embed_data(data):
     for i, f in enumerate(fields):
         if type(f) is int:
             minval, maxval = 0, max(val2num[i].keys()) + 20
-            val2num[i] = [n for n in range(minval, maxval + 1)]
-            num2val[i] = [n for n in range(minval, maxval + 1)]
+            val2num[i] = {n : n for n in range(minval, maxval + 1)}
+            num2val[i] = {n : '{}_{}'.format(i, n) for n in range(minval, maxval + 1)}
 
     return val2num, num2val
 
