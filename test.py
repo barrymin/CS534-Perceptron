@@ -8,30 +8,74 @@ from naive_perceptron import *
 from smart_perceptron import *
 from NonaggressiveDefaultMira import *
 from NonaggressiveAveragedMira import *
+from AggressiveAveragedMira import *
+from AggressiveDefaultMira import *
 
 MAX_EPOCHS = 5
+SORT = False
+NUMERIC_FEATURES = False
+BINNED = True
 
 # preprocess
-train_data = read_examples('income-data/income.train.txt')
-train_data = [(d[:-1], d[-1]) for d in train_data]
-train_examples, train_labels = [x for x, y in train_data], [y for x, y in train_data]
-emb, rev_emb = embed_data(train_examples)
-train_binarized_features = binarize(train_examples, emb)
+if BINNED:
+    # numeric features binned
+    train_data = read_examples('income-data/income.train.txt')
+    train_data = [(d[:-1], d[-1]) for d in train_data]
+    train_examples, train_labels = [x for x, y in train_data], [y for x, y in train_data]
+    emb, rev_emb = embed_data_binned(train_examples)
+    train_binarized_features = binarize_binned(train_examples, emb)
 
-dev_data = read_examples('income-data/income.dev.txt')
-dev_data = [(d[:-1], d[-1]) for d in dev_data]
-dev_examples, dev_labels = [x for x, y in dev_data], [y for x, y in dev_data]
-dev_binarized_features = binarize(dev_examples, emb)
+    dev_data = read_examples('income-data/income.dev.txt')
+    dev_data = [(d[:-1], d[-1]) for d in dev_data]
+    dev_examples, dev_labels = [x for x, y in dev_data], [y for x, y in dev_data]
+    dev_binarized_features = binarize_binned(dev_examples, emb)
 
-test_data = read_examples('income-data/income.test.txt')
-test_examples = [d[:-1] for d in test_data]
-test_binarized_features = binarize(test_examples, emb)
+    test_data = read_examples('income-data/income.test.txt')
+    test_examples = [d[:-1] for d in test_data]
+    test_binarized_features = binarize_binned(test_examples, emb)
+elif NUMERIC_FEATURES:
+    # do the same thing with numeric features intact
+    train_data = read_examples('income-data/income.train.txt')
+    train_data = [(d[:-1], d[-1]) for d in train_data]
+    train_examples, train_labels = [x for x, y in train_data], [y for x, y in train_data]
+    emb, rev_emb = embed_data_numeric(train_examples)
+    train_binarized_features = binarize_except_numeric(train_examples, emb)
 
+    dev_data = read_examples('income-data/income.dev.txt')
+    dev_data = [(d[:-1], d[-1]) for d in dev_data]
+    dev_examples, dev_labels = [x for x, y in dev_data], [y for x, y in dev_data]
+    dev_binarized_features = binarize_except_numeric(dev_examples, emb)
+
+    test_data = read_examples('income-data/income.test.txt')
+    test_examples = [d[:-1] for d in test_data]
+    test_binarized_features = binarize_except_numeric(test_examples, emb)
+else:
+    # all features binarized
+    train_data = read_examples('income-data/income.train.txt')
+    if SORT:
+        train_data = sorted(train_data, key=lambda x: x[-1], reverse=True)
+    train_data = [(d[:-1], d[-1]) for d in train_data]
+    train_examples, train_labels = [x for x, y in train_data], [y for x, y in train_data]
+    emb, rev_emb = embed_data(train_examples)
+    train_binarized_features = binarize(train_examples, emb)
+
+    dev_data = read_examples('income-data/income.dev.txt')
+    dev_data = [(d[:-1], d[-1]) for d in dev_data]
+    dev_examples, dev_labels = [x for x, y in dev_data], [y for x, y in dev_data]
+    dev_binarized_features = binarize(dev_examples, emb)
+
+    test_data = read_examples('income-data/income.test.txt')
+    test_examples = [d[:-1] for d in test_data]
+    test_binarized_features = binarize(test_examples, emb)
+
+# create our perceptron
 # p = Perceptron(dimension=len(train_binarized_features[0]))
 # p = Smart_perceptron(dimension=len(train_binarized_features[0]))
-# p = Naive_perceptron(dimension=len(train_binarized_features[0]))
+p = Naive_perceptron(dimension=len(train_binarized_features[0]))
 # p = NonaggressiveDefaultMira(dimension=len(train_binarized_features[0]))
-p = NonaggressiveAveragedMira(dimension=len(train_binarized_features[0]))
+# p = NonaggressiveAveragedMira(dimension=len(train_binarized_features[0]))
+# p = AggressiveDefaultMira(dimension=len(train_binarized_features[0]), p=0.1)
+# p = AggressiveAveragedMira(dimension=len(train_binarized_features[0]), p=0.1)
 
 
 def test(inputs, xs, ys, weights, bias):
@@ -105,10 +149,14 @@ for i in range(len(test_data)):
 print '\n\nweights:'
 weights, bias = p.GetWeightsBias()
 feature_names = []
-for r in rev_emb:
-    feature_names += [kv[1] for kv in sorted(r.items())]
+for i, r in enumerate(rev_emb):
+    if len(r) == 0:
+        feature_names.append('feature {}'.format(i))
+    else:
+        feature_names += [kv[1] for kv in sorted(r.items())]
 
 ordered_idxs = [i for i in sorted(range(len(weights)), key=lambda x: weights[x])]
 
 for i in ordered_idxs:
+
     print '{}: {}'.format(feature_names[i], weights[i])
