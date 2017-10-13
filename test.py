@@ -23,7 +23,7 @@ def normalize(feature):
     fstd = np.std(feature)
     temp = np.ones(np.size(feature))
     feature = (feature - temp * fmean) / fstd
-    return None
+    return feature
 
 # preprocess
 if BINNED:
@@ -61,42 +61,49 @@ else:
     train_data = read_examples('income-data/income.train.txt')
     if SORT:
         train_data = sorted(train_data, key=lambda x: x[-1], reverse=True)
+
     train_data = [(d[:-1], d[-1]) for d in train_data]
     train_examples, train_labels = [x for x, y in train_data], [y for x, y in train_data]
 
+    dev_data = read_examples('income-data/income.dev.txt')
+    dev_data = [(d[:-1], d[-1]) for d in dev_data]
+    dev_examples, dev_labels = [x for x, y in dev_data], [y for x, y in dev_data]
+
+    test_data = read_examples('income-data/income.test.txt')
+    test_examples = [d[:-1] for d in test_data]
+
     if NORMALIZE_DATA:
-        idxs = [i for i, x in enumerate( train_examples[0] ) if type( x ) is int]
-        columns = [None for field in train_examples[0]]
+        all_examples = train_examples + dev_examples + test_examples
+        idxs = [i for i, x in enumerate( all_examples[0] ) if type( x ) is int]
+        columns = [None for field in all_examples[0]]
         normalized_columns = []
         for i in idxs:
-            columns[i] = [t[i] for t in train_examples]
-        for c in columns:
+            columns[i] = [t[i] for t in all_examples]
+        for i, c in enumerate(columns):
             if c is not None:
-                normalize(np.array(c))
-        normalized_train_examples = []
-        for j, t in enumerate( train_examples ):
+                columns[i] = normalize(np.array(c))
+        normalized_examples = []
+        for j, t in enumerate( all_examples ):
             example = []
             for i, field in enumerate( t ):
                 if i in idxs:
                     example.append( columns[i][j] )
                 else:
                     example.append( field )
-            normalized_train_examples.append( tuple(example) )
-    train_examples = normalized_train_examples
+            normalized_examples.append( tuple(example) )
+        all_examples = normalized_examples
+        emb, rev_emb = embed_data( all_examples )
+        train_examples = all_examples[0:len(train_examples)]
+        dev_examples = all_examples[len(train_examples):len(train_examples) + len(dev_examples)]
+        test_examples = all_examples[-len(test_examples):]
+    else:
+        emb, rev_emb = embed_data(train_examples)
 
-    emb, rev_emb = embed_data_binned( train_examples )
-    train_binarized_features = binarize_binned( train_examples, emb )
 
-    emb, rev_emb = embed_data(train_examples)
     train_binarized_features = binarize(train_examples, emb)
 
-    dev_data = read_examples('income-data/income.dev.txt')
-    dev_data = [(d[:-1], d[-1]) for d in dev_data]
-    dev_examples, dev_labels = [x for x, y in dev_data], [y for x, y in dev_data]
     dev_binarized_features = binarize(dev_examples, emb)
 
-    test_data = read_examples('income-data/income.test.txt')
-    test_examples = [d[:-1] for d in test_data]
     test_binarized_features = binarize(test_examples, emb)
 
 # create our perceptron
@@ -142,7 +149,7 @@ while epochs < MAX_EPOCHS:
     for i, x in enumerate(train_binarized_features):
         count += 1
         cur_epoch = epochs + i / len( train_binarized_features )
-        p.learning_rate = 1. / (1. + decay * (cur_epoch - 1.))
+        # p.learning_rate = 1. / (1. + decay * (cur_epoch - 1.))
         updated, w, b = p.TrainExample(x, train_labels[i])
         if count % 1000 == 0:
             print 'epoch {} lr: {}'.format( cur_epoch, p.learning_rate )
