@@ -14,7 +14,7 @@ from AggressiveDefaultMira import *
 MAX_EPOCHS = 5
 SORT = False
 NUMERIC_FEATURES = False
-BINNED = True
+BINNED = False
 
 # preprocess
 if BINNED:
@@ -71,10 +71,9 @@ else:
 # create our perceptron
 # p = Perceptron(dimension=len(train_binarized_features[0]))
 # p = Smart_perceptron(dimension=len(train_binarized_features[0]))
-p = Naive_perceptron(dimension=len(train_binarized_features[0]))
+# p = Naive_perceptron(dimension=len(train_binarized_features[0]))
 # p = NonaggressiveDefaultMira(dimension=len(train_binarized_features[0]))
-# p = NonaggressiveAveragedMira(dimension=len(train_binarized_features[0]))
-# p = AggressiveDefaultMira(dimension=len(train_binarized_features[0]), p=0.1)
+p = NonaggressiveAveragedMira(dimension=len(train_binarized_features[0]))
 # p = AggressiveAveragedMira(dimension=len(train_binarized_features[0]), p=0.1)
 
 
@@ -140,13 +139,16 @@ print >> sys.stderr, 'Best error rate on dev set:\t{:.6}'.format(errs / len(dev_
 print >> sys.stderr, 'Achieved at epoch {}\n'.format(best_epoch)
 
 # label the test set
-print '\nClassifier labels for test set:\n'
+# print '\nClassifier labels for test set:\n'
+fp = open('income-data/income.test.txt')
+testlines = fp.readlines()
 for i in range(len(test_data)):
     classified = p.Classify(test_binarized_features[i])
     inc = '>=50k' if classified > 0 else '<50k'
-    print '{}\t{}'.format(test_data[i], inc)
+    # print '{}\t{}'.format(test_data[i], inc)
+    print '{} {}'.format(testlines[i].strip(), inc)
 
-print '\n\nweights:'
+print >> sys.stderr, '\n\nweights:'
 weights, bias = p.GetWeightsBias()
 feature_names = []
 for i, r in enumerate(rev_emb):
@@ -159,4 +161,4 @@ ordered_idxs = [i for i in sorted(range(len(weights)), key=lambda x: weights[x])
 
 for i in ordered_idxs:
 
-    print '{}: {}'.format(feature_names[i], weights[i])
+    print >> sys.stderr, '{}: {}'.format(feature_names[i], weights[i])
