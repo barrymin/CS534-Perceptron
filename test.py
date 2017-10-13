@@ -10,11 +10,20 @@ from NonaggressiveDefaultMira import *
 from NonaggressiveAveragedMira import *
 from AggressiveAveragedMira import *
 from AggressiveDefaultMira import *
+from vlr_perceptron import *
 
 MAX_EPOCHS = 5
 SORT = False
 NUMERIC_FEATURES = False
 BINNED = False
+NORMALIZE_DATA = True
+
+def normalize(feature):
+    fmean = feature.mean()
+    fstd = np.std(feature)
+    temp = np.ones(np.size(feature))
+    feature = (feature - temp * fmean) / fstd
+    return None
 
 # preprocess
 if BINNED:
@@ -22,8 +31,6 @@ if BINNED:
     train_data = read_examples('income-data/income.train.txt')
     train_data = [(d[:-1], d[-1]) for d in train_data]
     train_examples, train_labels = [x for x, y in train_data], [y for x, y in train_data]
-    emb, rev_emb = embed_data_binned(train_examples)
-    train_binarized_features = binarize_binned(train_examples, emb)
 
     dev_data = read_examples('income-data/income.dev.txt')
     dev_data = [(d[:-1], d[-1]) for d in dev_data]
@@ -56,6 +63,30 @@ else:
         train_data = sorted(train_data, key=lambda x: x[-1], reverse=True)
     train_data = [(d[:-1], d[-1]) for d in train_data]
     train_examples, train_labels = [x for x, y in train_data], [y for x, y in train_data]
+
+    if NORMALIZE_DATA:
+        idxs = [i for i, x in enumerate( train_examples[0] ) if type( x ) is int]
+        columns = [None for field in train_examples[0]]
+        normalized_columns = []
+        for i in idxs:
+            columns[i] = [t[i] for t in train_examples]
+        for c in columns:
+            if c is not None:
+                normalize(np.array(c))
+        normalized_train_examples = []
+        for j, t in enumerate( train_examples ):
+            example = []
+            for i, field in enumerate( t ):
+                if i in idxs:
+                    example.append( columns[i][j] )
+                else:
+                    example.append( field )
+            normalized_train_examples.append( tuple(example) )
+    train_examples = normalized_train_examples
+
+    emb, rev_emb = embed_data_binned( train_examples )
+    train_binarized_features = binarize_binned( train_examples, emb )
+
     emb, rev_emb = embed_data(train_examples)
     train_binarized_features = binarize(train_examples, emb)
 
@@ -69,12 +100,13 @@ else:
     test_binarized_features = binarize(test_examples, emb)
 
 # create our perceptron
-# p = Perceptron(dimension=len(train_binarized_features[0]))
+p = Perceptron(dimension=len(train_binarized_features[0]))
 # p = Smart_perceptron(dimension=len(train_binarized_features[0]))
 # p = Naive_perceptron(dimension=len(train_binarized_features[0]))
 # p = NonaggressiveDefaultMira(dimension=len(train_binarized_features[0]))
-p = NonaggressiveAveragedMira(dimension=len(train_binarized_features[0]))
-# p = AggressiveAveragedMira(dimension=len(train_binarized_features[0]), p=0.1)
+# p = NonaggressiveAveragedMira(dimension=len(train_binarized_features[0]))
+# p = AggressiveDefaultMira(dimension=len(train_binarized_features[0]), p=0.5)
+# p = VariableLearningRatePerceptron(dimension=len(train_binarized_features[0]))
 
 
 def test(inputs, xs, ys, weights, bias):
@@ -89,9 +121,12 @@ def test(inputs, xs, ys, weights, bias):
 
 # train the model
 count = 0
-epochs = 1
+epochs = 0
 min_err = len(dev_labels)
 best_w, best_b, best_epoch = None, None, None
+learning_rate = 1.
+decay = 1.75
+
 while epochs < MAX_EPOCHS:
     count = 0
     epochs += 1
@@ -106,17 +141,20 @@ while epochs < MAX_EPOCHS:
     correct = True
     for i, x in enumerate(train_binarized_features):
         count += 1
+        cur_epoch = epochs + i / len( train_binarized_features )
+        p.learning_rate = 1. / (1. + decay * (cur_epoch - 1.))
         updated, w, b = p.TrainExample(x, train_labels[i])
         if count % 1000 == 0:
+            print 'epoch {} lr: {}'.format( cur_epoch, p.learning_rate )
             # every 1000 examples, test on dev set
             misclassified = test(dev_examples, dev_binarized_features, dev_labels, None, None)
             print >> sys.stderr, 'Epoch {:.3}\t{:.4}'.format(
-                epochs + count / len(train_labels), misclassified / len(dev_labels)
+                cur_epoch, misclassified / len(dev_labels)
             )
             if misclassified < min_err:
                 # best result so far => update best model
                 min_err = misclassified
-                best_epoch = epochs + count / len(train_labels)
+                best_epoch = cur_epoch
                 best_w = w.tolist()
                 best_b = b
 

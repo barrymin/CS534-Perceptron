@@ -6,6 +6,7 @@ import numpy as np
 class Perceptron:
     def __init__(self, dimension):
         self.dimension = dimension
+        self.learning_rate = 1.0
         self.initialize()
 
     def initialize(self):
@@ -67,8 +68,8 @@ class Perceptron:
         # test the model
         if self.Classify(x) * y <= 0:
             # mis-classified
-            self.w += y * x
-            self.b += y
+            self.w += self.learning_rate * y * x
+            self.b += self.learning_rate * y
             return True, self.w, self.b
         else:
             return False, self.w, self.b

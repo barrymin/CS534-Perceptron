@@ -32,8 +32,8 @@ class Naive_perceptron(Perceptron):
     def TrainExample(self, x, y):
         self.c += 1
         if y * Perceptron.Classify(self, x) <= 0:
-            self.w += y * x
-            self.b += y
+            self.w += self.learning_rate * y * x
+            self.b += self.learning_rate * y
             updated = True
         else:
             updated = False
